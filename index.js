@@ -48,15 +48,50 @@ const comment = `Updated on ${hostname} at ${new Date()} via beeminding-omnifocu
 /*
  * Retrieve the number of tasks currently in OmniFocus.
  */
-const inboxCount = osa(() => 
-    Application("OmniFocus").defaultDocument.inboxTasks().length
-  );
-
+module.exports.inboxCount = osa(() =>
+  Application("OmniFocus").defaultDocument.inboxTasks().length
+);
 
 /*
- * From here on, evaluate properties and send data points to OmniFocus.
+ *
  */
-inboxCount()
+module.exports.recentlyUpdatedTasks = osa(() => {
+  let start = new Date('2018-09-02');
+  let tasks = Application("OmniFocus").defaultDocument
+    .flattenedTasks
+    .whose({
+      modificationDate: { _greaterThan: start},
+      blocked: false,
+      _or: [
+        { completed: false },
+        { completionDate: { _greaterThan: start} }
+      ]
+    })();
+
+  return tasks.map(task => ({
+    id: task.id(),
+    project: task.containingProject.name(),
+    taskName: task.name(),
+    completed: task.completed(),
+    flagged: task.flagged(),
+    updated: task.modificationDate(),
+    blocked: task.blocked()
+  }));
+});
+
+
+
+
+
+/**********************************************************************
+ * Map OmniFocus to Beeminder goals.
+ *
+ * Eventually, it'd be cool to figure out how to make this externalized
+ * configuration, such that other people could use this script without
+ * having to just fork the code for their own rules. But not this day.
+ **********************************************************************/
+
+module.exports.inboxCount()
   .then(n =>
     Beeminder.createDatapoint('omnifocus-inbox', {
       value: n,
@@ -65,3 +100,5 @@ inboxCount()
     }))
   .catch(console.error);
 
+// module.exports.recentlyUpdatedTasks()
+//   .then(console.log);
