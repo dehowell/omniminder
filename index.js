@@ -92,14 +92,9 @@ module.exports.recentlyUpdatedTasks = osa(() => {
  **********************************************************************/
 
 module.exports.inboxCount()
-  .then(console.log);
-//   .then(n =>
-//     Beeminder.createDatapoint('omnifocus-inbox', {
-//       value: n,
-//       comment: comment,
-//       requestid: daystamp
-//     }))
-//   .catch(console.error);
-
-module.exports.recentlyUpdatedTasks()
-  .then(console.log);
+  .then(n =>
+    Beeminder.createDatapoint('omnifocus-inbox', {
+      value: n,
+      comment: comment
+    }))
+  .catch(console.error);
