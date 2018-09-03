@@ -6,6 +6,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const process = require('process');
 const { promisify } = require('util');
 
 
@@ -19,6 +20,11 @@ const osa = require('osa2');
 /**********************************************************************
  * Setup
  **********************************************************************/
+
+// Fixes babel error when looking for presets. Probably a better way to
+// fix this, but I cannot presently be bothered.
+process.chdir(__dirname);
+
 function beeminderClient() {
   let configFile = path.join(os.homedir(), '.bmndrrc');
   let text = fs.readFileSync(configFile, 'utf-8');
