@@ -1,0 +1,13 @@
+{
+  "name": "beeminding-omnifocus",
+  "version": "1.0.0",
+  "description": "Scripts for linking Beeminder goals to OmniFocus.",
+  "main": "index.js",
+  "author": "David Howell",
+  "license": "ISC",
+  "dependencies": {
+    "beeminder": "^1.5.2",
+    "ini": "^1.3.5",
+    "osa2": "^0.2.3"
+  }
+}
