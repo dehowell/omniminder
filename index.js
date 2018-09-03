@@ -26,7 +26,7 @@ const osa = require('osa2');
 process.chdir(__dirname);
 
 function beeminderClient() {
-  let configFile = path.join(os.homedir(), '.bmndrrc');
+  let configFile = path.join('/Users/dave', '.bmndrrc');
   let text = fs.readFileSync(configFile, 'utf-8');
   let authToken = text.match(/^auth_token: (.*?)$/m)[1];
   let client = beeminder(authToken);
@@ -92,13 +92,14 @@ module.exports.recentlyUpdatedTasks = osa(() => {
  **********************************************************************/
 
 module.exports.inboxCount()
-  .then(n =>
-    Beeminder.createDatapoint('omnifocus-inbox', {
-      value: n,
-      comment: comment,
-      requestid: daystamp
-    }))
-  .catch(console.error);
+  .then(console.log);
+//   .then(n =>
+//     Beeminder.createDatapoint('omnifocus-inbox', {
+//       value: n,
+//       comment: comment,
+//       requestid: daystamp
+//     }))
+//   .catch(console.error);
 
-// module.exports.recentlyUpdatedTasks()
-//   .then(console.log);
+module.exports.recentlyUpdatedTasks()
+  .then(console.log);
