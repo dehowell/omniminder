@@ -38,7 +38,6 @@ function beeminderClient() {
 const Beeminder = beeminderClient();
 const hostname = os.hostname();
 const daystamp = new Date().toISOString().slice(0, 10);
-const comment = `Updated on ${hostname} at ${new Date()} via beeminding-omnifocus scripts`
 
 
 /**********************************************************************
@@ -48,14 +47,14 @@ const comment = `Updated on ${hostname} at ${new Date()} via beeminding-omnifocu
 /*
  * Retrieve the number of tasks currently in OmniFocus.
  */
-module.exports.inboxCount = osa(() =>
+const inboxCount = osa(() =>
   Application("OmniFocus").defaultDocument.inboxTasks().length
 );
 
 /*
  *
  */
-module.exports.recentlyUpdatedTasks = osa(() => {
+const recentlyUpdatedTasks = osa(() => {
   let start = new Date('2018-09-02');
   let tasks = Application("OmniFocus").defaultDocument
     .flattenedTasks
@@ -81,7 +80,10 @@ module.exports.recentlyUpdatedTasks = osa(() => {
 
 
 
-
+module.exports = {
+  inboxCount: inboxCount,
+  recentlyUpdatedTasks: recentlyUpdatedTasks
+};
 
 /**********************************************************************
  * Map OmniFocus to Beeminder goals.
@@ -89,12 +91,39 @@ module.exports.recentlyUpdatedTasks = osa(() => {
  * Eventually, it'd be cool to figure out how to make this externalized
  * configuration, such that other people could use this script without
  * having to just fork the code for their own rules. But not this day.
+ *
+ * Also, this should probably move to a script that can import the
+ * rest of the stuff above as a module.
  **********************************************************************/
 
-module.exports.inboxCount()
+let datapoints = []
+
+// Beemind inbox count
+inboxCount()
   .then(n =>
-    Beeminder.createDatapoint('omnifocus-inbox', {
+    datapoints.push(['omnifocus-inbox', {
       value: n,
-      comment: comment
-    }))
+      comment: `OmniFocus Inbox size on ${hostname} at ${new Date()}`,
+      requestid: '2018-09-04'
+  }]))
+  .catch(console.error);
+
+
+recentlyUpdatedTasks()
+  // Beemind completed flagged tasks
+  .then(tasks => {
+    // Filter down to flagged tasks
+    // Convert completed to 1 or 0
+    // Group by day
+    // Reduce to completed by day
+    return tasks
+  })
+  // Arbitrary Beeminding: tasks whose names match a pattern
+  .then(tasks => {
+
+  });
+
+// Send data points to the Beeminder API
+Promises.all(datapoints.map(d => Beeminder.createDatapoint(d[0], d[1])))
+  .then(console.log)
   .catch(console.error);
