@@ -23,22 +23,28 @@ const osa = require('osa2');
 
 // Fixes babel error when looking for presets. Probably a better way to
 // fix this, but I cannot presently be bothered.
+//
+// This would have to be fixed for these functions to be usable in a
+// library.
 process.chdir(__dirname);
+
 
 function beeminderClient() {
   let configFile = path.join('/Users/dave', '.bmndrrc');
   let text = fs.readFileSync(configFile, 'utf-8');
   let authToken = text.match(/^auth_token: (.*?)$/m)[1];
   let client = beeminder(authToken);
+  let callApi = promisify(client.callApi);
   return {
-    createDatapoint: promisify(client.createDatapoint) 
+    createDatapoint: promisify(client.createDatapoint),
+    // Malcolm hasn't cut a release for the Beeminder client that includes
+    // this API call.
+    createDatapoints: function(goalName, datapoints) {
+      let path = `/users/me/goals/${goalName}/datapoints/create_all.json`;
+      return callApi(path, {datapoints: JSON.stringify(datapoints)}, 'POST');
+    }
   };
 }
-
-const Beeminder = beeminderClient();
-const hostname = os.hostname();
-const daystamp = new Date().toISOString().slice(0, 10);
-
 
 /**********************************************************************
  * Functions that evaluate state of OmniFocus database.
@@ -96,34 +102,31 @@ module.exports = {
  * rest of the stuff above as a module.
  **********************************************************************/
 
-let datapoints = []
+async function syncOmniFocusToBeeminder() {
 
-// Beemind inbox count
-inboxCount()
-  .then(n =>
-    datapoints.push(['omnifocus-inbox', {
-      value: n,
-      comment: `OmniFocus Inbox size on ${hostname} at ${new Date()}`,
-      requestid: '2018-09-04'
-  }]))
-  .catch(console.error);
+  const Beeminder = beeminderClient();
+  const hostname = os.hostname();
+  const daystamp = new Date().toISOString().slice(0, 10);
 
+  let datapoints = {
+    'omnifocus-inbox': []
+  };
 
-recentlyUpdatedTasks()
-  // Beemind completed flagged tasks
-  .then(tasks => {
-    // Filter down to flagged tasks
-    // Convert completed to 1 or 0
-    // Group by day
-    // Reduce to completed by day
-    return tasks
-  })
-  // Arbitrary Beeminding: tasks whose names match a pattern
-  .then(tasks => {
-
+  let inbox = await inboxCount();
+  datapoints['omnifocus-inbox'].push({
+    value: inbox,
+    comment: `OmniFocus Inbox size on ${hostname} at ${new Date()}`,
+    requestid: daystamp
   });
 
-// Send data points to the Beeminder API
-Promises.all(datapoints.map(d => Beeminder.createDatapoint(d[0], d[1])))
+  let tasks = await recentlyUpdatedTasks();
+
+  console.log(JSON.stringify(datapoints));
+  let promises = Object.entries(datapoints)
+    .map(d => Beeminder.createDatapoints(d[0], d[1]));
+  return Promise.all(promises);
+}
+
+syncOmniFocusToBeeminder()
   .then(console.log)
   .catch(console.error);
