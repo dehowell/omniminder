@@ -129,8 +129,7 @@ async function syncOmniFocusToBeeminder() {
 syncOmniFocusToBeeminder()
   .then(responses => {
     let n = responses
-      .map(response => response.reduce((s, d) => s + d.value, 0))
-      .reduce((a,b) => a + b, 0);
+      .reduce((a,b) => a + b.length, 0);
     console.log(`${new Date()}: sent ${n} datapoints to Beeminder`);
   })
   .catch(console.error);
