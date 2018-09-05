@@ -119,14 +119,18 @@ async function syncOmniFocusToBeeminder() {
     requestid: daystamp
   });
 
-  let tasks = await recentlyUpdatedTasks();
+  // let tasks = await recentlyUpdatedTasks();
 
-  console.log(JSON.stringify(datapoints));
   let promises = Object.entries(datapoints)
     .map(d => Beeminder.createDatapoints(d[0], d[1]));
   return Promise.all(promises);
 }
 
 syncOmniFocusToBeeminder()
-  .then(console.log)
+  .then(responses => {
+    let n = responses
+      .map(response => response.reduce((s, d) => s + d.value, 0))
+      .reduce((a,b) => a + b, 0);
+    console.log(`${new Date()}: sent ${n} datapoints to Beeminder`);
+  })
   .catch(console.error);
