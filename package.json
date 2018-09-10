@@ -11,6 +11,6 @@
     "osa2": "^0.2.3"
   },
   "bin": {
-    "omniminder": "./index.js"
+    "omniminder": "./omniminder.js"
   }
 }

@@ -1,10 +1,7 @@
-#!/usr/bin/env node
-
 /**********************************************************************
  * Standard Library Imports
 **********************************************************************/
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
 const process = require('process');
 const { promisify } = require('util');
@@ -30,6 +27,7 @@ process.chdir(__dirname);
 
 
 function beeminderClient() {
+  // TODO look up user's home directory properly
   let configFile = path.join('/Users/dave', '.bmndrrc');
   let text = fs.readFileSync(configFile, 'utf-8');
   let authToken = text.match(/^auth_token: (.*?)$/m)[1];
@@ -61,7 +59,7 @@ const inboxCount = osa(() =>
  *
  */
 const recentlyUpdatedTasks = osa(() => {
-  let start = new Date('2018-09-02');
+  let start = new Date('2018-09-09');
   let tasks = Application("OmniFocus").defaultDocument
     .flattenedTasks
     .whose({
@@ -88,48 +86,6 @@ const recentlyUpdatedTasks = osa(() => {
 
 module.exports = {
   inboxCount: inboxCount,
-  recentlyUpdatedTasks: recentlyUpdatedTasks
+  recentlyUpdatedTasks: recentlyUpdatedTasks,
+  beeminder: beeminderClient
 };
-
-/**********************************************************************
- * Map OmniFocus to Beeminder goals.
- *
- * Eventually, it'd be cool to figure out how to make this externalized
- * configuration, such that other people could use this script without
- * having to just fork the code for their own rules. But not this day.
- *
- * Also, this should probably move to a script that can import the
- * rest of the stuff above as a module.
- **********************************************************************/
-
-async function syncOmniFocusToBeeminder() {
-
-  const Beeminder = beeminderClient();
-  const hostname = os.hostname();
-  const daystamp = new Date().toISOString().slice(0, 10);
-
-  let datapoints = {
-    'omnifocus-inbox': []
-  };
-
-  let inbox = await inboxCount();
-  datapoints['omnifocus-inbox'].push({
-    value: inbox,
-    comment: `OmniFocus Inbox size on ${hostname} at ${new Date()}`,
-    requestid: daystamp
-  });
-
-  // let tasks = await recentlyUpdatedTasks();
-
-  let promises = Object.entries(datapoints)
-    .map(d => Beeminder.createDatapoints(d[0], d[1]));
-  return Promise.all(promises);
-}
-
-syncOmniFocusToBeeminder()
-  .then(responses => {
-    let n = responses
-      .reduce((a,b) => a + b.length, 0);
-    console.log(`${new Date()}: sent ${n} datapoints to Beeminder`);
-  })
-  .catch(console.error);
