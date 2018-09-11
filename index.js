@@ -56,36 +56,34 @@ const inboxCount = osa(() =>
 );
 
 /*
- *
+ * Retrieve tasks completed in the last 24 hours.
  */
-const recentlyUpdatedTasks = osa(() => {
-  let start = new Date('2018-09-09');
+const recentlyCompletedTasks = osa(() => {
+  let start = new Date(new Date() - 48 * 3600 * 1000);
   let tasks = Application("OmniFocus").defaultDocument
     .flattenedTasks
     .whose({
-      modificationDate: { _greaterThan: start},
-      blocked: false,
-      _or: [
-        { completed: false },
-        { completionDate: { _greaterThan: start} }
-      ]
+      completionDate: { _greaterThan: start},
+      completed: true,
+      inInbox: false
     })();
 
+  // TODO can I just task.properties() and have that convert to Node?
   return tasks.map(task => ({
     id: task.id(),
     project: task.containingProject.name(),
     taskName: task.name(),
     completed: task.completed(),
     flagged: task.flagged(),
-    updated: task.modificationDate(),
+    updatedAt: task.modificationDate(),
+    completedAt: task.completionDate(),
     blocked: task.blocked()
   }));
-});
-
+})
 
 
 module.exports = {
   inboxCount: inboxCount,
-  recentlyUpdatedTasks: recentlyUpdatedTasks,
+  recentlyCompletedTasks: recentlyCompletedTasks,
   beeminder: beeminderClient
 };
