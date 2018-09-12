@@ -22,7 +22,7 @@ function asDataPoint(task) {
   return {
     value: task.completed ? 1 : 0,
     timestamp: timestamp.getTime() / 1000,
-    comment: `Completed '${task.taskName}' at ${timestamp}`,
+    comment: `Completed '${task.taskName}' at ${timestamp}, updated at ${new Date()}`,
     requestid: asDaystamp(timestamp)
   };
 }
@@ -60,7 +60,7 @@ async function syncOmniFocusToBeeminder() {
 
 syncOmniFocusToBeeminder()
   .then(responses => {
-    let n = responses.length();
+    let n = responses.length;
     console.log(`${new Date()}: sent ${n} datapoints to Beeminder`);
   })
   .catch(console.error);
