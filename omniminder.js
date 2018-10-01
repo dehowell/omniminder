@@ -51,8 +51,10 @@ async function syncOmniFocusToBeeminder() {
     .map(t => { datapoints.push(['gratitude', asDataPoint(t)])});
 
   completed
-    .filter(t => t.project == 'Routines' && t.taskName.search(/mood/i) > 1)
+    .filter(t => t.project == 'Start the Day' && t.taskName.search(/mood/i) > 1)
     .map(t => { datapoints.push(['mood', asDataPoint(t)])});
+
+  console.log(await omniminder.reviewBacklog());
 
   let promises = datapoints.map( ([g, d]) => beeminder.createDatapoint(g, d) );
   return Promise.all(promises);

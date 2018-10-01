@@ -81,9 +81,33 @@ const recentlyCompletedTasks = osa(() => {
   }));
 })
 
+/*
+ * Retrieve statistics about the projects due for review.
+ */
+const reviewBacklog = osa(() => {
+  let today = new Date();
+  let pending = Application("OmniFocus").defaultDocument
+    .flattenedProjects
+    .whose({
+      completed: false,
+      nextReviewDate: { _lessThan: today }
+    })()
+    // `status` is an enum and I can't figure out how to construct one in the whose
+    // clause; It's converted to a string once the ObjectSpecifier is materialized
+    // as JavaScript types, so I'm filtering it here.
+    .filter(p => p.status() != "dropped");
+
+  let ageDue = p => (today - p.nextReviewDate()) / (1000 * 3600 * 24);
+
+  return {
+    'size': pending.length,
+    'oldestDue': Math.max.apply(Math, pending.map(ageDue))
+  };
+})
 
 module.exports = {
   inboxCount: inboxCount,
   recentlyCompletedTasks: recentlyCompletedTasks,
+  reviewBacklog: reviewBacklog,
   beeminder: beeminderClient
 };
