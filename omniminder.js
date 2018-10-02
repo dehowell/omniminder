@@ -54,7 +54,12 @@ async function syncOmniFocusToBeeminder() {
     .filter(t => t.project == 'Start the Day' && t.taskName.search(/mood/i) > 1)
     .map(t => { datapoints.push(['mood', asDataPoint(t)])});
 
-  console.log(await omniminder.reviewBacklog());
+  let {size: reviewBacklog} = await omniminder.reviewBacklog();
+  datapoints.push(['omnifocus-review', {
+    value: reviewBacklog,
+    comment: `OmniFocus projects pending review on ${hostname} at ${new Date()}`,
+    requestid: daystamp
+  }]);
 
   let promises = datapoints.map( ([g, d]) => beeminder.createDatapoint(g, d) );
   return Promise.all(promises);
