@@ -22,13 +22,30 @@ This script is cobbled-together scaffolding for my own set-up! Feel free to clon
 
 In the root directory of this repository, run `npm install -g`.
 
-### Save Beeminder auth token to `~/.bmndrrc`
+### Create an omniminder config file
 
-Create a file in your home directory named `.bmndrrc` that contains this text:
+Run these commands to initialize the omniminder config file:
 
 ```
-[account]
-auth_token: INSERT_YOUR_AUTH_TOKEN_HERE
+mkdir $HOME/.omniminder
+echo "{}" > $HOME/.omniminder/config.json
+```
+
+Then open `$HOME/.omniminder/config.json` in a text editor and configure your goal mappings:
+
+```json
+{
+  "authToken": "INSERT_YOUR_AUTH_TOKEN_HERE",
+  "inboxGoal": "omnifocus-inbox",
+  "reviewGoal": "omnifocus-review",
+  "completedTaskRules": [
+		{
+			"slug": "gratitude",
+			"project": "Routines",
+			"taskName": "Write in gratitude journal"
+		}
+	]
+}
 ```
 
 You can find your auth token under [your Beeminder user settings](https://www.beeminder.com/settings/account#account-permissions).

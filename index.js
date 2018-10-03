@@ -109,13 +109,15 @@ function compileRule(rule) {
 module.exports.evaluateCompletedTaskRules = function(config, completed) {
   let datapoints = [];
 
-  config.completedTaskRules
-    .map(compileRule)
-    .map(rule => {
-      completed
-        .filter(t => rule.evaluate(t))
-        .map(t => { datapoints.push([rule.slug, asDataPoint(t)]) })
-    })
+  if (config.completedTaskRules) {
+    config.completedTaskRules
+      .map(compileRule)
+      .map(rule => {
+        completed
+          .filter(t => rule.evaluate(t))
+          .map(t => { datapoints.push([rule.slug, asDataPoint(t)]) })
+      });
+  }
 
   return datapoints;
 }
