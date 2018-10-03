@@ -74,8 +74,7 @@ asDataPoint = function(task) {
     value: task.completed ? 1 : 0,
     timestamp: timestamp.getTime() / 1000,
     comment: `Completed '${task.taskName}' at ${timestamp}, updated at ${new Date()}`,
-    // TODO this doesn't really work as a request id for arbitrary beeminding
-    requestid: asDaystamp(timestamp)
+    requestid: task.id
   };
 }
 
