@@ -28,7 +28,7 @@ process.chdir(__dirname);
 
 function beeminderClient() {
   // TODO look up user's home directory properly
-  let configFile = path.join('/Users/dave', '.bmndrrc');
+  let configFile = path.join(process.env['HOME'], '.bmndrrc');
   let text = fs.readFileSync(configFile, 'utf-8');
   let authToken = text.match(/^auth_token: (.*?)$/m)[1];
   let client = beeminder(authToken);
