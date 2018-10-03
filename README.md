@@ -10,6 +10,12 @@ Whenever the Omni Group introduces their own JavaScript automation engine into O
 
 This script is cobbled-together scaffolding for my own set-up! Feel free to clone and tinker, but I make no guarantee to fix any bugs relevant to your OS configuration, etc. I would _love_ to hear how your experience goes, though -- over time, I _may_ try to formalize these into a more general tool.
 
+## Features
+
+- Beemind the number of items in your OmniFocus Inbox.
+- Beemind the number of projects that are due for review.
+- Beemind arbitrary tasks completed in the last 48 hours.
+
 ## Setup
 
 ### Install the omniminder script
@@ -34,3 +40,7 @@ In Hazel, create a rule group for the folder `$HOME/Library/Containers/com.omnig
 ![](img/hazel_rule.png)
 
 Change the paths in the embedded script as appropriate for your own computer. To find the location of the omniminder script, you can run `which omniminder` in a terminal.
+
+### Map omniminder to your own Beeminder goals.
+
+I haven't yet made the connection between OmniFocus stats and Beeminder goals configurable. If you want to use this script yourself, you'll need to edit `omniminder.js` to set up your own data points.
