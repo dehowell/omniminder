@@ -68,14 +68,56 @@ asDaystamp = function(date) {
 }
 
 /* Convert a task to a datapoint */
-module.exports.asDataPoint = function(task) {
+asDataPoint = function(task) {
   let timestamp = new Date(task.completed ? task.completedAt : task.updatedAt);
   return {
     value: task.completed ? 1 : 0,
     timestamp: timestamp.getTime() / 1000,
     comment: `Completed '${task.taskName}' at ${timestamp}, updated at ${new Date()}`,
+    // TODO this doesn't really work as a request id for arbitrary beeminding
     requestid: asDaystamp(timestamp)
   };
+}
+
+function asPredicate(key, value) {
+  if (typeof(value) == 'object') {
+    if (value.search) {
+      let pattern = RegExp(value.search, value.flags);
+      return task => task[key].search(pattern) > 1;
+    }
+  } else {
+    return task => task[key] == value;
+  }
+}
+
+function compileRule(rule) {
+  let keys = ["project", "taskName", "flagged"];
+  let predicates = keys
+    .filter(k => rule[k])
+    .map(k => asPredicate(k, rule[k]));
+
+  return {
+    slug: rule.slug,
+    evaluate: task => {
+      let matches = predicates.map(p => p(task))
+      let allMatched = matches.reduce((a, b) => a && b, true);
+      return allMatched;
+    }
+  }
+}
+
+module.exports.evaluateCompletedTaskRules = function(config, completed) {
+  let datapoints = [];
+
+  config.completedTaskRules
+    .map(compileRule)
+    .map(rule => {
+      completed
+        .filter(t => rule.evaluate(t))
+        .map(t => { datapoints.push([rule.slug, asDataPoint(t)]) })
+    })
+
+  return datapoints;
 }
 
 /**********************************************************************

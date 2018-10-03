@@ -41,15 +41,11 @@ async function syncOmniFocusToBeeminder() {
     }]);
   }
 
+  // Beeminder arbitrary task completions
   let completed = await omniminder.recentlyCompletedTasks();
-  // TODO stew on it and then rewrite as a set of rules
-  completed
-    .filter(t => t.project == 'Routines' && t.taskName.search(/gratitude/i) > 1)
-    .map(t => { datapoints.push(['gratitude', omniminder.asDataPoint(t)])});
-
-  completed
-    .filter(t => t.project == 'Startup' && t.taskName.search(/mood/i) > 1)
-    .map(t => { datapoints.push(['mood', omniminder.asDataPoint(t)])});
+  omniminder
+    .evaluateCompletedTaskRules(config, completed)
+    .map(dp => datapoints.push(dp));
 
   let promises = datapoints.map( ([g, d]) => beeminder.createDatapoint(g, d) );
   return Promise.all(promises);
