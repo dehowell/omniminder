@@ -29,20 +29,21 @@ process.chdir(__dirname);
 /*
  * Load the OmniMinder configuration file.
  */
-function loadConfig() {
+module.exports.loadConfig = function() {
   let configFile = path.join(process.env['HOME'], '.omniminder', 'config.json');
   return new Promise((resolve, reject) =>
     fs.readFile(configFile, 'utf-8', (err, data) => {
       if (err) throw err;
       let config = JSON.parse(data);
       // TODO add assertions to check that auth token is available, etc.
+      // TODO add schema validation
       resolve(config);
     })
   );
 }
 
 
-function beeminderClient(config) {
+module.exports.beeminder = function(config) {
   let client = beeminder(config.authToken);
   let callApi = promisify(client.callApi);
   return {
@@ -57,20 +58,41 @@ function beeminderClient(config) {
 }
 
 /**********************************************************************
+ * Utility functions
+ **********************************************************************/
+
+/* Reformat a date as a daystamp in local time. */
+asDaystamp = function(date) {
+  let local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().substring(0, 10);
+}
+
+/* Convert a task to a datapoint */
+module.exports.asDataPoint = function(task) {
+  let timestamp = new Date(task.completed ? task.completedAt : task.updatedAt);
+  return {
+    value: task.completed ? 1 : 0,
+    timestamp: timestamp.getTime() / 1000,
+    comment: `Completed '${task.taskName}' at ${timestamp}, updated at ${new Date()}`,
+    requestid: asDaystamp(timestamp)
+  };
+}
+
+/**********************************************************************
  * Functions that evaluate state of OmniFocus database.
  **********************************************************************/
 
 /*
  * Retrieve the number of tasks currently in OmniFocus.
  */
-const inboxCount = osa(() =>
+module.exports.inboxCount = osa(() =>
   Application("OmniFocus").defaultDocument.inboxTasks().length
 );
 
 /*
  * Retrieve tasks completed in the last 24 hours.
  */
-const recentlyCompletedTasks = osa(() => {
+module.exports.recentlyCompletedTasks = osa(() => {
   let start = new Date(new Date() - 48 * 3600 * 1000);
   let tasks = Application("OmniFocus").defaultDocument
     .flattenedTasks
@@ -80,7 +102,6 @@ const recentlyCompletedTasks = osa(() => {
       inInbox: false
     })();
 
-  // TODO can I just task.properties() and have that convert to Node?
   return tasks.map(task => ({
     id: task.id(),
     project: task.containingProject.name(),
@@ -96,7 +117,7 @@ const recentlyCompletedTasks = osa(() => {
 /*
  * Retrieve statistics about the projects due for review.
  */
-const reviewBacklog = osa(() => {
+module.exports.reviewBacklog = osa(() => {
   let today = new Date();
   let pending = Application("OmniFocus").defaultDocument
     .flattenedProjects
@@ -116,11 +137,3 @@ const reviewBacklog = osa(() => {
     'oldestDue': Math.max.apply(Math, pending.map(ageDue))
   };
 })
-
-module.exports = {
-  loadConfig: loadConfig,
-  inboxCount: inboxCount,
-  recentlyCompletedTasks: recentlyCompletedTasks,
-  reviewBacklog: reviewBacklog,
-  beeminder: beeminderClient
-};
