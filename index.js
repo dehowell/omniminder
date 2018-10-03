@@ -26,12 +26,24 @@ const osa = require('osa2');
 process.chdir(__dirname);
 
 
-function beeminderClient() {
-  // TODO look up user's home directory properly
-  let configFile = path.join(process.env['HOME'], '.bmndrrc');
-  let text = fs.readFileSync(configFile, 'utf-8');
-  let authToken = text.match(/^auth_token: (.*?)$/m)[1];
-  let client = beeminder(authToken);
+/*
+ * Load the OmniMinder configuration file.
+ */
+function loadConfig() {
+  let configFile = path.join(process.env['HOME'], '.omniminder', 'config.json');
+  return new Promise((resolve, reject) =>
+    fs.readFile(configFile, 'utf-8', (err, data) => {
+      if (err) throw err;
+      let config = JSON.parse(data);
+      // TODO add assertions to check that auth token is available, etc.
+      resolve(config);
+    })
+  );
+}
+
+
+function beeminderClient(config) {
+  let client = beeminder(config.authToken);
   let callApi = promisify(client.callApi);
   return {
     createDatapoint: promisify(client.createDatapoint),
@@ -106,6 +118,7 @@ const reviewBacklog = osa(() => {
 })
 
 module.exports = {
+  loadConfig: loadConfig,
   inboxCount: inboxCount,
   recentlyCompletedTasks: recentlyCompletedTasks,
   reviewBacklog: reviewBacklog,

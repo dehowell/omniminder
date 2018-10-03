@@ -30,7 +30,8 @@ function asDataPoint(task) {
 /* Query OmniFocus database state and generate datapoints. */
 async function syncOmniFocusToBeeminder() {
 
-  const beeminder = omniminder.beeminder();
+  const config = await omniminder.loadConfig();
+  const beeminder = omniminder.beeminder(config);
   const hostname = os.hostname();
   const daystamp = new Date().toISOString().slice(0, 10);
 
