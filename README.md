@@ -1,17 +1,36 @@
-# Beeminding OmniFocus
+# omniminder
 
-This is a collection of scripts to link OmniFocus Pro up to my Beeminder goals. They may work with OmniFocus Pro 2, but I am exclusively testing with OmniFocus 3.
+omniminder is a script for connecting OmniFocus to Beeminder goals. This tool depends on AppleScript, which is only available in the Pro flavors of OmniFocus. While it may work with OmniFocus Pro 2, I am only using it and testing it with OmniFocus Pro 3. The script also depends on Node.js. I suggest using Node Version Manager (nvm) to get an up-to-date version of Node.js, which can easily be installed via [Homebrew](https://brew.sh).
 
-They are generally intended to run in response to the OmniFocus database file updating. Noodlesoft's Hazel is a straightforward way to attach a script to a file update. The OmniFocus automation is itself implemented using JavaScript for Automation, but executed from within the context of Node.js scripts so that they can interact with the Beeminder API conveniently.
+omniminder is intended to run whenever OmniFocus syncs. While there isn't any _official_ way to run scripts on the sync event in OmniFocus, the modified time on the app's database file (`$HOME/Library/Containers/com.omnigroup.OmniFocus3/Data/Library/Application Support/OmniFocus/OmniFocus.ofocus`) reliably changes whenever a sync occurs. I use Noodlesoft's Hazel to run the script in response to the file changing. If you don't own Hazel, you could also set up a cron job or just run the script manually.
+
+The OmniFocus automation is itself implemented using JavaScript for Automation, but executed from within the context of Node.js scripts (so that they can interact with the Beeminder API conveniently).
 
 Whenever the Omni Group introduces their own JavaScript automation engine into OmniFocus, I may loop that in as well. One project, three different JavaScript interpreters... fun!
 
-These scripts are cobbled-together scaffolding for my own set-up! Feel free to clone and tinker, but I make no guarantee to fix any bugs relevant to your OS configuration, etc. I would _love_ to hear how your experience goes, though -- over time, I _may_ try to formalize these into a more general tool.
+This script is cobbled-together scaffolding for my own set-up! Feel free to clone and tinker, but I make no guarantee to fix any bugs relevant to your OS configuration, etc. I would _love_ to hear how your experience goes, though -- over time, I _may_ try to formalize these into a more general tool.
 
 ## Setup
 
-TODO elaborate on these
+### Install the omniminder script
 
-1. Run `npm install`
-2. Create `~/.bmndrrc`
-3. Configure Hazel rule
+In the root directory of this repository, run `npm install -g`.
+
+### Save Beeminder auth token to `~/.bmndrrc`
+
+Create a file in your home directory named `.bmndrrc` that contains this text:
+
+```
+[account]
+auth_token: INSERT_YOUR_AUTH_TOKEN_HERE
+```
+
+You can find your auth token under [your Beeminder user settings](https://www.beeminder.com/settings/account#account-permissions).
+
+### Configure Hazel to run omniminder (optional)
+
+In Hazel, create a rule group for the folder `$HOME/Library/Containers/com.omnigroup.OmniFocus3/Data/Library/Application Support/OmniFocus`, then configure a rule to trigger on the file `OmniFocus.ofocus` on the condition "Date Last Modified did change":
+
+![](img/hazel_rule.png)
+
+Change the paths in the embedded script as appropriate for your own computer. To find the location of the omniminder script, you can run `which omniminder` in a terminal.
