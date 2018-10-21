@@ -52,7 +52,7 @@ You can find your auth token under [your Beeminder user settings](https://www.be
 
 ### Configure Hazel to run omniminder (optional)
 
-In Hazel, create a rule group for the folder `$HOME/Library/Containers/com.omnigroup.OmniFocus3/Data/Library/Application Support/OmniFocus`, then configure a rule to trigger on the file `OmniFocus.ofocus` on the condition "Date Last Modified did change":
+In Hazel, create a rule group for the folder `$HOME/Library/Containers/com.omnigroup.OmniFocus3/Data/Library/Application Support/OmniFocus`, then configure a rule to trigger on the file `OmniFocus.ofocus-lock` on the condition "Date Last Modified is after Date Last Matched":
 
 ![](img/hazel_rule.png)
 
